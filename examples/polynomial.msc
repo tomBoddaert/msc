@@ -1,0 +1,33 @@
+# Evaluate a polynomial of x, with non-zero coefficients
+# Enter x first, then the coefficients in order of descending
+# exponent of x (the last term will be multiplied by x^0 = 1).
+# Then enter a 0
+#
+# Example: 2x^2 - 3x + 5, x = -4 => 49
+# Inputs: -4, 2, -3, 5, 0
+#
+s 1 0 1
+#
+i, > iv
+v<   vzv
+*dv . <
+,.,
+   ^,< <
+> >,.v
+  v*<zv
+    ^ <
+ ,+
+ ^<
+  p. <
+#
+# Stacks:
+#
+#  Powers of   |  1
+#   x          |
+#  ------------+--------------
+#  Current     |  Coefficients
+#   power of x |
+#  ------------+--------------
+#  Cumulative  |
+#   sum        |
+#

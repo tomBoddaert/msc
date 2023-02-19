@@ -1,0 +1,35 @@
+# This program takes an input and outputs the
+# Fibonacci numbers up to and including the input
+s 1 0 1
+#
+i,,:   v
+>   v
+c   >p,v
+d > .v
+^.  ,<
+  ^,  +<
+#
+# a(n) = a(n - 1) + a(n - 2)
+# (0, 1) <- a(n - 1)
+# (1, 1) <- a(n - 2)
+# (0, 0) <- max
+#
+# The input is stored in stack (0, 0), then the
+# pointer is set to 0 and joins the loop.
+# The pointer is added to the value in (1, 1),
+# which is initially 0.
+# This value is stored in (0, 1).
+# The value in (1, 0) (initially 1) is then moved to (1, 1)
+# and the value in (0, 1) is compared to the max,
+# if it is smaller or equal to it, it will print it,
+# store it in (1, 0) and continue the loop
+#
+# Code Snippets used:
+#
+# zero the register (ensure in the same stack):
+# > , :
+#
+# less than or equal to:
+#   v
+# < c
+# ^ <

@@ -1,0 +1,23 @@
+[package]
+name = "msc"
+version = "0.1.0"
+authors = ["Tom Boddaert <msc@tomboddaert.com>"]
+edition = "2021"
+description = "A 2d, stack-based, esoteric language"
+readme = "README.md"
+homepage = "https://github.com/tomboddaert/msc/"
+repository = "https://github.com/tomboddaert/msc/"
+license = "Creative Commons Attribution 4.0 International"
+keywords = ["language", "esolang"]
+categories = ["compilers"]
+
+[lib]
+name = "msc"
+path = "lib/lib.rs"
+doc = true
+edition = "2021"
+crate-type = ["lib"]
+
+[features]
+default = ["std"]
+std = []

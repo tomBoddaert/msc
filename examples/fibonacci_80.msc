@@ -1,0 +1,12 @@
+# This program outputs the Fibonacci numbers
+# up to 80
+s 0 1 1
+s 1 1 80
+#
+>+  ,v
+
+  >   .v
+  ,
+  ^. < d
+^,    pc
+#
