@@ -35,6 +35,13 @@ There are example files in the [examples](examples) directory.
 Run one with `msc examples/<name>.msc`
 or `cargo run examples/<name>.msc`
 
+## Installing with cargo
+
+Make sure you have [cargo](https://rustup.rs/) installed.
+```sh
+cargo install --git https://github.com/tomboddaert/msc
+```
+
 ## Building & Installing
 
 Build:
