@@ -30,6 +30,8 @@ fn main() {
         STACK_CAPACITY,
         { STACK_SIZE.0 },
         { STACK_SIZE.1 },
+        ParseIntError,
+        TryFromIntError
     >(PROGRAM, &try_parse_n, &try_n_to_usize)
     .unwrap();
 

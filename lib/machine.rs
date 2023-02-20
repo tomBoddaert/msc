@@ -14,7 +14,7 @@ pub enum State {
     InputWaiting,
 }
 
-/// The machine runs `MSCode` programs
+/// The `MSCode` runner
 pub struct Machine<N, InstructionPlane, StackType, StackPlane>
 where
     N: Default,

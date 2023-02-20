@@ -21,7 +21,6 @@ where
     const ONE: Self;
 }
 
-#[macro_export]
 macro_rules! number_impl {
     ( $t:ty ) => {
         impl Number for $t {

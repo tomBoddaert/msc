@@ -18,6 +18,7 @@ pub use std_planes::*;
 mod std_planes {
     use super::{Plane, Pointer};
 
+    /// A growable, vector-based [`Plane`] implementation
     pub struct VecPlane<T: Default>(usize, usize, Vec<Vec<T>>, T);
 
     impl<T: Default> Plane for VecPlane<T> {
@@ -77,6 +78,7 @@ mod std_planes {
 }
 
 #[allow(clippy::module_name_repetitions)]
+/// A constant-sized, array-based [`Plane`] implementation
 pub struct ArrayPlane<const WIDTH: usize, const HEIGHT: usize, T: Default>([[T; WIDTH]; HEIGHT], T);
 
 impl<const WIDTH: usize, const HEIGHT: usize, T: Default> Plane for ArrayPlane<WIDTH, HEIGHT, T> {
@@ -131,4 +133,106 @@ impl<const WIDTH: usize, const HEIGHT: usize, T: Default + Copy> Default
     fn default() -> Self {
         Self::new()
     }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::plane::ArrayPlane;
+
+    use super::{Plane, VecPlane};
+
+    macro_rules! plane_ops {
+        ( $plane:ident, set $pointer:expr => $value:literal ) => {
+            *$plane.get_mut($pointer).unwrap() = $value
+        };
+        ( $plane:ident, get $pointer:expr => None ) => {
+            assert!(matches!($plane.get($pointer), None))
+        };
+        ( $plane:ident, get $pointer:expr => $value:literal ) => {
+            assert!(matches!($plane.get($pointer), Some($value)))
+        };
+    }
+
+    macro_rules! plane_tests {
+        ( $name:ident, $type:path => ($( $arg:expr ),*), $( get $pointer:expr => $value:tt ),* , ) => {
+            #[test]
+            fn $name() {
+                let plane = <$type>::new($( $arg ),*);
+
+                $( plane_ops!(plane, get $pointer => $value) );* ;
+            }
+        };
+        ( $name:ident, $type:path => ($( $arg:expr ),*), $( $op:tt $pointer:expr => $value:tt ),* , ) => {
+            #[test]
+            fn $name() {
+                let mut plane = <$type>::new($( $arg ),*);
+
+                $( plane_ops!(plane, $op $pointer => $value) );* ;
+            }
+        };
+    }
+
+    plane_tests!(vec_empty, VecPlane<i8> => (4, 4),
+        get (0, 0) => 0,
+    );
+    plane_tests!(vec_set_get, VecPlane<i8> => (4, 4),
+        set (0, 0) => 5,
+        get (0, 0) => 5,
+    );
+    plane_tests!(vec_set2_get, VecPlane<i8> => (4, 4),
+        set (0, 0) => 5,
+        set (1, 1) => 5,
+        get (0, 0) => 5,
+    );
+    plane_tests!(vec_set2_get2, VecPlane<i8> => (4, 4),
+        set (0, 0) => 5,
+        set (1, 1) => 5,
+        get (0, 0) => 5,
+        get (1, 1) => 5,
+    );
+    plane_tests!(vec_set_get2, VecPlane<i8> => (4, 4),
+        set (0, 0) => 5,
+        get (0, 0) => 5,
+        get (1, 1) => 0,
+    );
+    plane_tests!(vec_get_out_of_range, VecPlane<i8> => (4, 4),
+        get (4, 0) => None,
+        get (5, 0) => None,
+        get (0, 4) => None,
+        get (0, 5) => None,
+        get (4, 4,) => None,
+        get (5, 5) => None,
+    );
+
+    plane_tests!(array_empty, ArrayPlane<4, 4, i8> => (),
+        get (0, 0) => 0,
+    );
+    plane_tests!(array_set_get, ArrayPlane<4, 4, i8> => (),
+        set (0, 0) => 5,
+        get (0, 0) => 5,
+    );
+    plane_tests!(array_set2_get, ArrayPlane<4, 4, i8> => (),
+        set (0, 0) => 5,
+        set (1, 1) => 5,
+        get (0, 0) => 5,
+    );
+    plane_tests!(array_set2_get2, ArrayPlane<4, 4, i8> => (),
+        set (0, 0) => 5,
+        set (1, 1) => 5,
+        get (0, 0) => 5,
+        get (1, 1) => 5,
+    );
+    plane_tests!(array_set_get2, ArrayPlane<4, 4, i8> => (),
+        set (0, 0) => 5,
+        get (0, 0) => 5,
+        get (1, 1) => 0,
+    );
+    plane_tests!(array_get_out_of_range, ArrayPlane<4, 4, i8> => (),
+        get (4, 0) => None,
+        get (5, 0) => None,
+        get (0, 4) => None,
+        get (0, 5) => None,
+        get (4, 4,) => None,
+        get (5, 5) => None,
+    );
 }

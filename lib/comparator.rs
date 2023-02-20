@@ -44,3 +44,101 @@ impl From<Comparator> for char {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::stack::test_stacks::{FakeStack, SinglePopStack};
+
+    use super::Comparator;
+
+    macro_rules! comp_test {
+        ( $name:ident, $comp:path, $reg:expr, $stack:expr, $(( $test:literal, $expected:literal )),* , ) => {
+            #[test]
+            fn $name() {
+                let register = $reg;
+
+                let tests = [
+                    $(($test, $expected)),*
+                ];
+
+                for (velocity, expected) in tests {
+                    let mut stack = $stack;
+                    let new_velocity = $comp.apply(&register, &mut stack, velocity);
+                    assert_eq!(new_velocity, expected, "{} comparison redirected {velocity:0>2b} -> {new_velocity:0>2b} rather than {velocity:0>2b} -> {expected:0>2b}", stringify!($name));
+                }
+            }
+        };
+    }
+
+    // Test that x < 0 redirects correctly
+    comp_test!(
+        zero_less,
+        Comparator::Zero,
+        -1,
+        FakeStack::new(),
+        (0b00, 0b10), // Right -> Down
+        (0b01, 0b11), // Left -> Up
+        (0b10, 0b01), // Down -> Left
+        (0b11, 0b00), // Up -> Right
+    );
+
+    // Test that x == 0 redirects correctly
+    comp_test!(
+        zero_equal,
+        Comparator::Zero,
+        0,
+        FakeStack::new(),
+        (0b00, 0b00), // Right -> Right
+        (0b01, 0b01), // Left -> Left
+        (0b10, 0b10), // Down -> Down
+        (0b11, 0b11), // Up -> Up
+    );
+
+    // Test that x > 0 redirects correctly
+    comp_test!(
+        zero_greater,
+        Comparator::Zero,
+        1,
+        FakeStack::new(),
+        (0b00, 0b11), // Right -> Up
+        (0b01, 0b10), // Left -> Down
+        (0b10, 0b00), // Down -> Right
+        (0b11, 0b01), // Up -> Left
+    );
+
+    // Test that x < stack redirects correctly
+    comp_test!(
+        stack_less,
+        Comparator::Stack,
+        2,
+        SinglePopStack::new(5),
+        (0b00, 0b10), // Right -> Down
+        (0b01, 0b11), // Left -> Up
+        (0b10, 0b01), // Down -> Left
+        (0b11, 0b00), // Up -> Right
+    );
+
+    // Test that x == stack redirects correctly
+    comp_test!(
+        stack_equal,
+        Comparator::Stack,
+        5,
+        SinglePopStack::new(5),
+        (0b00, 0b00), // Right -> Right
+        (0b01, 0b01), // Left -> Left
+        (0b10, 0b10), // Down -> Down
+        (0b11, 0b11), // Up -> Up
+    );
+
+    // Test that x > stack redirects correctly
+    comp_test!(
+        stack_greater,
+        Comparator::Stack,
+        8,
+        SinglePopStack::new(5),
+        (0b00, 0b11), // Right -> Up
+        (0b01, 0b10), // Left -> Down
+        (0b10, 0b00), // Down -> Right
+        (0b11, 0b01), // Up -> Left
+    );
+}

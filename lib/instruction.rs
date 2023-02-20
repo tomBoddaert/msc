@@ -24,6 +24,7 @@ pub enum Instruction {
 
 #[derive(Clone, Debug)]
 pub enum IntoInstructionError {
+    /// Character does not match any instructions
     UnknownChar(char),
 }
 

@@ -2,10 +2,11 @@
 //! Requires std
 
 use std::{
+    error,
     fmt::Display,
     io::{BufRead, Stdin},
     iter::once,
-    num::{ParseIntError, TryFromIntError},
+    num::ParseIntError,
 };
 
 use crate::{
@@ -18,24 +19,41 @@ use crate::{
 
 /// `MSCode` load errors
 #[derive(Debug)]
-pub enum Error {
+pub enum Error<ParseNError: error::Error> {
+    /// Invalid instruction character
     InvalidInstruction(IntoInstructionError),
-    InvalidInteger(ParseIntError),
-    InvalidStackPointer(TryFromIntError),
+    /// Invalid number
+    InvalidNumber(ParseNError),
+    /// Invalid coordinate number
+    InvalidCoordinate(ParseIntError),
+    /// Stack coordinate greater than or equal to 1/4 of the width / height
     StackPointerOutOfRange(Pointer),
+    /// Missing at least one coordinate in a stack line
     MissingStackPointer(String),
 }
 
-impl Display for Error {
+impl<E: error::Error + 'static> error::Error for Error<E> {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        use Error::{InvalidCoordinate, InvalidInstruction, InvalidNumber};
+        match self {
+            InvalidInstruction(err) => Some(err),
+            InvalidNumber(err) => Some(err),
+            InvalidCoordinate(err) => Some(err),
+            _ => None,
+        }
+    }
+}
+
+impl<E: error::Error> Display for Error<E> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         use Error::{
-            InvalidInstruction, InvalidInteger, InvalidStackPointer, MissingStackPointer,
+            InvalidCoordinate, InvalidInstruction, InvalidNumber, MissingStackPointer,
             StackPointerOutOfRange,
         };
         match self {
             InvalidInstruction(err) => err.fmt(f),
-            InvalidInteger(err) => err.fmt(f),
-            InvalidStackPointer(err) => err.fmt(f),
+            InvalidNumber(err) => Display::fmt(&err, f),
+            InvalidCoordinate(err) => err.fmt(f),
             StackPointerOutOfRange(pointer) => {
                 write!(f, "stack pointer out of range: {pointer:?}")
             }
@@ -44,32 +62,34 @@ impl Display for Error {
     }
 }
 
-impl From<IntoInstructionError> for Error {
+impl<E: error::Error> From<IntoInstructionError> for Error<E> {
     fn from(value: IntoInstructionError) -> Self {
         Self::InvalidInstruction(value)
     }
 }
 
-impl From<ParseIntError> for Error {
+impl<E: error::Error> From<ParseIntError> for Error<E> {
     fn from(value: ParseIntError) -> Self {
-        Self::InvalidInteger(value)
-    }
-}
-
-impl From<TryFromIntError> for Error {
-    fn from(value: TryFromIntError) -> Self {
-        Self::InvalidStackPointer(value)
+        Self::InvalidCoordinate(value)
     }
 }
 
 /// The returned machine type when loaded
-pub type Machine<N> = machine::Machine<N, VecPlane<Instruction>, VecStack<N>, VecPlane<VecStack<N>>>;
+pub type Machine<N> =
+    machine::Machine<N, VecPlane<Instruction>, VecStack<N>, VecPlane<VecStack<N>>>;
 
 /// Load `MSCode` from a str
-pub fn from_str<N: Number>(
+///
+/// # Errors
+/// - [`Error::InvalidInstruction`] - failed to parse a character as an instruction
+/// - [`Error::InvalidNumber`] - failed to parse a number
+/// - [`Error::InvalidCoordinate`] - failed to parse a coordinate number
+/// - [`Error::StackPointerOutOfRange`] - a stack coordinate is greater than or equal to 1/4 of the width / height
+/// - [`Error::MissingStackPointer`] - missing at least one coordinate in a stack line
+pub fn from_str<N: Number, ParseNError: error::Error>(
     source: &str,
-    try_parse_n: &dyn Fn(&str) -> Result<N, ParseIntError>,
-) -> Result<Machine<N>, Error> {
+    try_parse_n: &dyn Fn(&str) -> Result<N, ParseNError>,
+) -> Result<Machine<N>, Error<ParseNError>> {
     let mut instructions = Vec::new();
     let mut stack_instructions = Vec::new();
 
@@ -89,10 +109,17 @@ pub fn from_str<N: Number>(
 }
 
 /// Load `MSCode` from stdin
-pub fn from_stdin<N: Number>(
+///
+/// # Errors
+/// - [`Error::InvalidInstruction`] - failed to parse a character as an instruction
+/// - [`Error::InvalidNumber`] - failed to parse a number
+/// - [`Error::InvalidCoordinate`] - failed to parse a coordinate number
+/// - [`Error::StackPointerOutOfRange`] - a stack coordinate is greater than or equal to 1/4 of the width / height
+/// - [`Error::MissingStackPointer`] - missing at least one coordinate in a stack line
+pub fn from_stdin<N: Number, ParseNError: error::Error>(
     source: &Stdin,
-    try_parse_n: &dyn Fn(&str) -> Result<N, ParseIntError>,
-) -> Result<Machine<N>, Error> {
+    try_parse_n: &dyn Fn(&str) -> Result<N, ParseNError>,
+) -> Result<Machine<N>, Error<ParseNError>> {
     let mut instructions = Vec::new();
     let mut stack_instructions = Vec::new();
 
@@ -112,12 +139,19 @@ pub fn from_stdin<N: Number>(
     Ok(Machine::new(instructions, stacks))
 }
 
-pub fn parse_line<N: Number>(
+/// Load one line of `MSCode` from a str
+///
+/// # Errors
+/// - [`Error::InvalidInstruction`] - failed to parse a character as an instruction
+/// - [`Error::InvalidNumber`] - failed to parse a number
+/// - [`Error::InvalidCoordinate`] - failed to parse a coordinate number
+/// - [`Error::MissingStackPointer`] - missing at least one coordinate in a stack line
+pub fn parse_line<N: Number, ParseNError: error::Error>(
     line: &str,
     instructions: &mut Vec<Vec<Instruction>>,
     stack_instructions: &mut Vec<(usize, usize, Vec<N>)>,
-    try_parse_n: &dyn Fn(&str) -> Result<N, ParseIntError>,
-) -> Result<(), Error> {
+    try_parse_n: &dyn Fn(&str) -> Result<N, ParseNError>,
+) -> Result<(), Error<ParseNError>> {
     let mut chars = line.chars();
     match chars.next() {
         Some('#') => {}
@@ -140,10 +174,17 @@ pub fn parse_line<N: Number>(
             let (x, y) = (x.parse()?, y.parse()?);
 
             // Collect the rest of the numbers into a stack
-            let stack: Result<Vec<N>, ParseIntError> = numbers_string
+            let stack: Result<Vec<N>, ParseNError> = numbers_string
                 .map(|number_str| try_parse_n(number_str))
                 .collect();
-            stack_instructions.push((x, y, stack?));
+            stack_instructions.push((
+                x,
+                y,
+                match stack {
+                    Ok(value) => value,
+                    Err(err) => return Err(Error::InvalidNumber(err)),
+                },
+            ));
         }
         Some(char) => {
             let code_line: Result<Vec<Instruction>, IntoInstructionError> = once(char)
@@ -167,10 +208,14 @@ pub fn parse_line<N: Number>(
     Ok(())
 }
 
-pub fn create_stacks<N: Number>(
+/// Create stacks from `stack_instructions`
+///
+/// # Errors
+/// - [`Error::StackPointerOutOfRange`] - a stack coordinate is greater than or equal to 1/4 of the width / height
+pub fn create_stacks<N: Number, ParseNError: error::Error>(
     stack_instructions: Vec<(usize, usize, Vec<N>)>,
     instructions: &VecPlane<Instruction>,
-) -> Result<VecPlane<VecStack<N>>, Error> {
+) -> Result<VecPlane<VecStack<N>>, Error<ParseNError>> {
     // Create blank stacks
     let mut stacks: VecPlane<VecStack<N>> =
         vec![
