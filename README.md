@@ -26,7 +26,7 @@ Or you can write programs straight into it:
 ```sh
 msc
 ```
-Write your program, then press `Ctrl + D` on Unix-like systems or `Enter, Ctrl + Z` on Windows to run it.  
+Write your program, then press `Enter, Ctrl + D` on Unix-like systems or `Enter, Ctrl + Z` on Windows to run it.  
 There is no way to save your programs from here, but you can copy them from your terminal!
 
 ## Examples
