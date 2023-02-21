@@ -1,3 +1,6 @@
+#[cfg(not(feature = "std"))]
+compile_error!("This binary must be compiled with the 'std' feature!\nTo use no_std, use the library (remove '--no-default-features').");
+
 use msc::{
     self,
     instruction::Instruction,
