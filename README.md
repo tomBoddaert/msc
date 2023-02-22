@@ -51,10 +51,10 @@ cargo build --release
 
 Local install on Linux:
 ```sh
-> In ~/.local/bin
+# In ~/.local/bin
 ln -s $(realpath target/release/msc) ~/.local/bin
 
-> In ~/.bin
+# In ~/.bin
 ln -s $(realpath target/release/msc) ~/.bin
 ```
 

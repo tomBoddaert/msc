@@ -1,6 +1,6 @@
 [package]
 name = "msc"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Tom Boddaert <msc@tomboddaert.com>"]
 edition = "2021"
 description = "A 2d, stack-based, esoteric language"
