@@ -1,0 +1,55 @@
+# Prints the first 357 terms of Van Eck's sequence
+# See the pdf for a better view of this
+#
+# Choice constants
+s 0 0 2
+s 2 1 2
+s 4 0 2
+#
+# Path constants
+s 0 3 1
+s 1 3 0
+s 4 3 0
+s 6 1 0
+s 6 2 1
+s 7 2 0
+s 8 2 0
+s 9 1 2
+s 9 2 2
+s 10 1 0
+s 10 2 1
+s 11 2 1
+s 12 2 2
+#
+# 1s
+s 0 1 1
+s 3 1 1
+s 5 4 1
+s 10 4 1
+#
+# Last term
+s 2 3 50
+#
+#
+#
+#
+v v                      < <          <  <
+>p  v     v                        <<          <
+  d         v   < v            <           <    <
+v c^           vcd/    <
+d >v        d   >^>.,v
+zv       >d^zv   >v>v
+.d    v  zc^.d  >c    v  .            .  .
+v-<       >vv-< dv<,.    d            d  d
++. d  >., vd+.     .p      .   .   ..      .   ..
+,>^.  v,.< .,>^d  >\ <  > vd> vd> vdd   > vd> vdd
+   zv >   v   v<  ,    ^   ^ < ^ < ^ <     ^ < ^ <
+     v,< <   v.d      < ^z  ^z  ^z  ^z  ^z  ^z  ^z
+        <    >    /     .z  .z  .z  .z  .z  .z  .z
+   d d ^c^    zv d       :   :   :   :   :   :   :
+   . .  d     >        ^ ,   ,   ,   ,   ,   ,   ,
+           >    ^.   >v  ,   ,   ,   ,   ,   ,   ,
+    >>               zd. ^    >  ^>  ^   .>  ^>  ^
+        ^           < >.  >  ^       >  d^
+>         > >     ^>d.v              ^z
+   >           > >    >               ^
